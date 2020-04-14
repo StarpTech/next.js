@@ -426,7 +426,7 @@ export default class Router implements BaseRouter {
       }
 
       const route = toRoute(pathname)
-      const { shallow = false } = options
+      const { shallow = false, skipDataFetch = false } = options
 
       if (isDynamicRoute(route)) {
         const { pathname: asPathname } = parse(as)
@@ -463,7 +463,14 @@ export default class Router implements BaseRouter {
       Router.events.emit('routeChangeStart', as)
 
       // If shallow is true and the route exists in the router cache we reuse the previous result
-      this.getRouteInfo(route, pathname, query, as, shallow).then(routeInfo => {
+      this.getRouteInfo(
+        route,
+        pathname,
+        query,
+        as,
+        shallow,
+        skipDataFetch
+      ).then(routeInfo => {
         const { error } = routeInfo
 
         if (error && error.cancelled) {
@@ -532,7 +539,8 @@ export default class Router implements BaseRouter {
     pathname: string,
     query: any,
     as: string,
-    shallow: boolean = false
+    shallow: boolean = false,
+    skipDataFetch: boolean = false
   ): Promise<RouteInfo> {
     const cachedRouteInfo = this.components[route]
 
@@ -626,6 +634,13 @@ export default class Router implements BaseRouter {
               `The default export is not a React Component in page: "${pathname}"`
             )
           }
+        }
+
+        // this allows us to ship the app sekeleton immediatly and load the data afterwards on page "mount"
+        if (skipDataFetch) {
+          routeInfo.props = { pageProps: {} }
+          this.components[route] = routeInfo
+          return routeInfo
         }
 
         return this._getData<RouteInfo>(() =>

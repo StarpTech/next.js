@@ -52,6 +52,7 @@ export type LinkProps = {
   shallow?: boolean
   passHref?: boolean
   prefetch?: boolean
+  skipDataFetch?: boolean
 }
 
 let observer: IntersectionObserver
@@ -203,6 +204,7 @@ class Link extends Component<LinkProps> {
     // replace state instead of push if prop is present
     Router[this.props.replace ? 'replace' : 'push'](href, as, {
       shallow: this.props.shallow,
+      skipDataFetch: this.props.skipDataFetch,
     }).then((success: boolean) => {
       if (!success) return
       if (scroll) {
@@ -317,6 +319,7 @@ if (process.env.NODE_ENV === 'development') {
     prefetch: PropTypes.bool,
     replace: PropTypes.bool,
     shallow: PropTypes.bool,
+    skipDataFetch: PropTypes.bool,
     passHref: PropTypes.bool,
     scroll: PropTypes.bool,
     children: PropTypes.oneOfType([
